@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- LOGIN -->
+<div class="login-layer" id="loginLayer">
+    <div class="login-box">
+        <img src="avatar.png" class="avatar">
+        <h2>| SYSTEM WHYXVII |</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">LOGIN</button>
+    </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+    <div class="top">
+        <img src="avatar.png" class="avatar-small">
+        <h3 id="displayUser"></h3>
+        <h1>| WHYXVII CHART |</h1>
+        <p id="analysisTime"></p>
+    </div>
+
+    <div class="input-section">
+        <input type="number" id="high" placeholder="High (H)">
+        <input type="number" id="low" placeholder="Low (L)">
+        <input type="number" id="close" placeholder="Close (C)">
+        <button onclick="analyze()">ANALYZE</button>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div class="analyze-layer" id="analyzeLayer">
+    <div class="loader-box">
+        <div class="scanner"></div>
+        <p>| Analyzing |</p>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-layer" id="resultLayer">
+    <canvas id="chartCanvas"></canvas>
+
+    <div class="result-box">
+        <h2>| RESULT ANALYZE |</h2>
+        <p>Pivot Point : <span id="pp"></span></p>
+        <p>Resistance : <span id="r1"></span></p>
+        <p>Support : <span id="s1"></span></p>
+    </div>
+
+    <button onclick="back()">BACK</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    color:white;
+    overflow:hidden;
+}
+
+/* ================= BACKGROUND ================= */
+.bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:url('background.jpg') center/cover no-repeat;
+    filter:brightness(0.46);
+    z-index:-1;
+}
+
+/* ================= LOGIN ================= */
+.login-layer{
+    position:fixed;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    backdrop-filter:blur(8px);
+}
+
+.login-box{
+    background:rgba(0,0,0,0.65);
+    padding:40px;
+    border-radius:20px;
+    text-align:center;
+    width:300px;
+    animation:fadeIn 1s ease;
+    box-shadow:0 0 40px rgba(255,255,255,0.1);
+}
+
+/* ================= AVATAR ================= */
+.avatar{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:50%;
+    margin-bottom:15px;
+    border:3px solid white;
+    box-shadow:
+        0 0 10px rgba(255,255,255,0.8),
+        0 0 20px rgba(255,255,255,0.5),
+        0 0 40px rgba(255,255,255,0.3);
+}
+
+.avatar-small{
+    width:100px;
+    height:100px;
+    object-fit:cover;
+    border-radius:50%;
+    border:3px solid white;
+    box-shadow:
+        0 0 8px rgba(255,255,255,0.7),
+        0 0 18px rgba(255,255,255,0.4);
+}
+
+/* ================= INPUT ================= */
+input{
+    width:100%;
+    padding:12px;
+    margin-top:12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.2);
+    outline:none;
+    background:rgba(255,255,255,0.08);
+    color:white;
+    backdrop-filter:blur(5px);
+}
+
+input:focus{
+    border:1px solid white;
+    box-shadow:0 0 10px rgba(255,255,255,0.3);
+}
+
+/* ================= BUTTON ================= */
+button{
+    margin-top:20px;
+    padding:10px 25px;   
+    width:auto;          
+    min-width:180px;     
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(90deg,#ffffff,#dcdcdc);
+    font-weight:600;
+    cursor:pointer;
+    color:black;
+    transition:0.3s ease;
+}
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 20px rgba(255,255,255,0.5);
+}
+
+/* ================= APP ================= */
+.app{
+    display:none;
+    text-align:center;
+    padding-top:40px;
+}
+
+.top{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+#displayUser{
+    margin-top:10px;
+    font-size:14px;
+    color:white;
+    letter-spacing:1px;
+    opacity:0.8;
+}
+
+.input-section{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-top:60px;
+}
+
+.input-section input{
+    width:250px;
+    margin:8px 0;
+}
+
+
+.analyze-layer{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+.scanner{
+    width:300px;
+    height:5px;
+    background:linear-gradient(90deg,#ffffff,transparent);
+    animation:scan 1s infinite linear;
+    border-radius:5px;
+}
+
+@keyframes scan{
+    from{transform:translateX(-150px);}
+    to{transform:translateX(150px);}
+}
+
+/* ================= RESULT ================= */
+
+
+canvas{
+    max-width:90%;
+    margin:auto;
+}
+
+.result-layer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 80px; 
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.result-layer.show {
+    opacity: 1;
+}
+
+.result-box {
+    transform: translateY(40px);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.result-layer.show .result-box {
+    transform: translateY(0);
+}
+
+/* ================= ANIMATION ================= */
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(20px);}
+    to{opacity:1;transform:translateY(0);}
+}
+</style>
+
+<script>
+function updateTime() {
+    const now = new Date();
+
+    const options = {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Makassar'
+    };
+
+    let formatted = now.toLocaleString('en-US', options);
+    formatted = formatted.replace(',', ' -') + " WITA";
+
+    document.getElementById("analysisTime").innerText = formatted;
+}
+updateTime();
+setInterval(updateTime,60000);
+
+// LOGIN
+function login(){
+    let user=document.getElementById("username").value;
+    let pass=document.getElementById("password").value;
+
+    if(user==="WhyNF" && pass==="pp"){
+        document.getElementById("loginLayer").style.display="none";
+        document.getElementById("app").style.display="block";
+        document.getElementById("displayUser").innerText="Start?, "+user;
+    }else{
+        alert("Access Denied Tolol");
+    }
+}
+
+// BACK
+function back(){
+    document.getElementById("resultLayer").style.display="none";
+    document.getElementById("app").style.display="block";
+}
+
+// VOICE
+function speakComplete(){
+    const message=new SpeechSynthesisUtterance("Analysis Berhasil");
+    speechSynthesis.speak(message);
+}
+
+let chartInstance;
+
+// ANALYZE (LOGIKA TIDAK DIUBAH)
+function analyze(){
+
+    let high=parseFloat(document.getElementById("high").value);
+    let low=parseFloat(document.getElementById("low").value);
+    let close=parseFloat(document.getElementById("close").value);
+
+    if(isNaN(high)||isNaN(low)||isNaN(close)){
+        alert("Isi input dulu kontol.");
+        return;
+    }
+
+    document.getElementById("app").style.display="none";
+    document.getElementById("analyzeLayer").style.display="flex";
+
+    setTimeout(()=>{
+
+        let pp=(high+low+close)/3;
+        let r1=(2*pp)-low;
+        let s1=(2*pp)-high;
+
+        document.getElementById("pp").innerText=pp.toFixed(2);
+        document.getElementById("r1").innerText=r1.toFixed(2);
+        document.getElementById("s1").innerText=s1.toFixed(2);
+
+        document.getElementById("analyzeLayer").style.display="none";
+        document.getElementById("resultLayer").style.display="block";
+
+        speakComplete();
+        new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
+
+        const ctx=document.getElementById('chartCanvas').getContext('2d');
+        if(chartInstance){ chartInstance.destroy(); }
+
+        chartInstance=new Chart(ctx,{
+            type:'line',
+            data:{
+                labels:["Low","Pivot","High","Close"],
+                datasets:[{
+                    data:[low,pp,high,close],
+                    borderColor:"#00ffcc",
+                    backgroundColor:"rgba(0,255,204,0.2)",
+                    tension:0.4,
+                    fill:true
+                }]
+            },
+            options:{
+                responsive:true,
+                animation:{duration:1500},
+                plugins:{legend:{display:false}}
+            }
+        });
+
+    },2000);
+    function showResult() {
+    const layer = document.querySelector(".result-layer");
+
+    layer.classList.add("show");
+
+    layer.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+}
+</script>
